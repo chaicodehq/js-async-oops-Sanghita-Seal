@@ -101,7 +101,7 @@ export function checkIngredients(ingredient) {
   // Your code here
   return new Promise((resolve, reject) => {
     if (!validIngredients.includes(ingredient)) {
-      reject(new Error(`${ingredient} khatam ho gaya!`));
+      return reject(new Error(`${ingredient} khatam ho gaya!`));
     }
     resolve({ ingredient, available: true });
   });
@@ -121,24 +121,21 @@ export function prepareChaiWithTimeout(type, timeoutMs) {
 }
 
 export function processChaiQueue(orders) {
-  // Your code here
-  return new Promise((resolve) => {
-    if (!Array.isArray(orders) || orders.length === 0) {
-      return resolve([]);
-    }
+  if (!Array.isArray(orders) || orders.length === 0) {
+    return Promise.resolve([]);
+  }
 
-    const promises = orders.map((order) => {
-      orderChai(order.type, order.quantity)
-        .then((result) => ({
-          status: "fulfilled",
-          value: orderResult,
-        }))
-        .catch((err) => ({
-          status: "rejected",
-          reason: errorMessage,
-        }));
-    });
+  const promises = orders.map((order) =>
+    orderChai(order.type, order.quantity)
+      .then((result) => ({
+        status: "fulfilled",
+        value: result,
+      }))
+      .catch((err) => ({
+        status: "rejected",
+        reason: err.message,
+      }))
+  );
 
-    Promise.all(promises).then(resolve);
-  });
+  return Promise.all(promises);
 }
